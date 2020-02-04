@@ -1,0 +1,22 @@
+#
+# dhcpd6.conf
+#
+
+ddns-update-style none;
+default-lease-time 2592000;
+preferred-lifetime 604800;
+option dhcp-renewal-time 3600;
+option dhcp-rebinding-time 7200;
+allow leasequery;
+option dhcp6.preference 255;
+option dhcp6.rapid-commit;
+option dhcp6.info-refresh-time 21600;
+log-facility local6;
+dhcpv6-lease-file-name "/var/lib/dhcp/dhcpd6.leases";
+
+subnet6 __LANPREF6__ {
+  authoritative;
+  option dhcp6.domain-search "__DOMAIN__";
+  option dhcp6.name-servers __DNSSRV__;
+  __RANGE__
+}

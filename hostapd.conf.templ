@@ -1,0 +1,21 @@
+#
+# hostapd.conf
+#
+
+interface=__LANIF__
+__BRIDGE__
+driver=nl80211
+
+ssid=__SSID__
+country_code=__CC__
+ieee80211d=1
+ieee80211n=1
+hw_mode=__MODE__
+channel=__CH__
+
+auth_algs=1
+wpa=2
+wpa_passphrase=__PASS__
+wpa_key_mgmt=WPA-PSK
+wpa_pairwise=CCMP TKIP
+rsn_pairwise=CCMP

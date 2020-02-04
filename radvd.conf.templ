@@ -1,0 +1,25 @@
+#
+# radvd.conf
+#
+
+interface __LANIF__
+{
+	AdvSendAdvert on;
+	MinRtrAdvInterval 200;
+	MaxRtrAdvInterval 600;
+	AdvManagedFlag __MFLAG__;
+	AdvOtherConfigFlag __OFLAG__;
+	AdvLinkMTU 0;
+	AdvDefaultPreference high;
+	AdvReachableTime 300000;
+	AdvRetransTimer 10000;
+
+	prefix __LANPREF6__
+	{
+		AdvOnLink __LFLAG__;
+		AdvAutonomous __AFLAG__;
+		AdvRouterAddr on;
+	};
+
+__RDNSS__
+};

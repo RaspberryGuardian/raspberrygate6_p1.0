@@ -1,0 +1,15 @@
+#
+# dhcpd.conf
+#
+
+ddns-update-style none;
+default-lease-time 3600;
+max-lease-time 86400;
+log-facility local7;
+
+__SUBNET__ {
+  range __RANGE__;
+  option domain-name "__DOMAIN__";
+  option domain-name-servers __DNSSRV__;
+  option routers __GATEWAY__;
+}
