@@ -1,8 +1,8 @@
 #!/bin/sh
-# version 1.0.0
+# version 1.0.2
 
 INTERACTIVE=true
-CONFIG=./raspg-config.conf
+CONFIG=./raspg.conf
 
 LF=$(printf '\\\012_')
 LF=${LF%_}
@@ -623,6 +623,7 @@ do_select_v4mode() {
     TYPE=$(whiptail --menu "Choose the IPv4 operation mode (for router mode)." 20 100 10 \
       "0" "NAT64: This mode dose not use IPv4 (using NAT64/DNS64)." \
       "1" "DHCP: This mode use DHCP." \
+      "3" "no-NAT: This mode dose not use NAT (w/o dynamic routing)." \
       3>&1 1>&2 2>&3)
     RET=$?
   else
@@ -635,6 +636,7 @@ do_select_v4mode() {
     case $TYPE in
       0 ) STATUS=NAT64 ;;
       1 ) STATUS=DHCP ;;
+      2 ) STATUS=no-NAT ;;
       *) whiptail --msgbox "Programmer error: unrecognized option." 20 60 1 ;;
     esac
   fi
@@ -691,7 +693,7 @@ do_select_v6mode() {
 do_select_nat6mode() {
   if [ "$INTERACTIVE" = true ]; then
     TYPE=$(whiptail --menu "Choose the IPv6 NAT mode (for router mode)." 20 100 10 \
-      "0" "no-NAT: This mode dose not use NAT (TBD)." \
+      "0" "no-NAT: This mode dose not use NAT (w/o dynamic routing)." \
       "1" "NPTv6: This mode use IPv6-to-IPv6 Network Prefix Transration (RFC 6296) (not working)." \
       "2" "NAPT6: This mode use Network Address Port Transration (IP masquerade for IPv6)." \
       3>&1 1>&2 2>&3)
