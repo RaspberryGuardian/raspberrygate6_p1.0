@@ -5,7 +5,7 @@ echo "-- do apt update and apgrade.........."
 sudo apt update && sudo apt -y upgrade
 
 # install hostapd
-echo "-- install hostapd"
+echo "-- install hostapd.........."
 sudo apt -y install hostapd
 sudo systemctl unmask hostapd
 
@@ -14,7 +14,7 @@ echo "-- install radvd.........."
 sudo apt -y install radvd
 
 # install isc-dhcp-server
-echo "-- install isc-dhcp-server"
+echo "-- install isc-dhcp-server.........."
 sudo apt -y install isc-dhcp-server
 
 # install unbound
