@@ -593,8 +593,8 @@ reset_sysctl () {
 do_select_rgmode() {
   if [ "$INTERACTIVE" = true ]; then
     TYPE=$(whiptail --menu "Choose the Raspberry Gate operation mode." 20 100 10 \
-      "0" "Bridge: This mode use bridging between WAN and LAN." \
-      "1" "Secure-Bridge: This mode use bridging between WAN and LAN with FW." \
+      "0" "Bridge(TBD in this version): This mode use bridging between WAN and LAN." \
+      "1" "Secure-Bridge(TBD in this version): This mode use bridging between WAN and LAN with FW." \
       "2" "Router: This mode use routing." \
       3>&1 1>&2 2>&3)
     RET=$?
