@@ -21,7 +21,7 @@ sh ./install-jool.sh
 ## Usage
 - raspg-config
 
-This script configures and run RaspberryGate6 with a UI similar to tasp-config.
+This script configures and run RaspberryGate6 with a UI similar to rasp-config.
 You can start RaspberryGate6 in the set mode by selecting `Commit` button.
 
 ## Authors
