@@ -29,29 +29,29 @@ The raspg.conf file is assumed to be located in the same directory as raspg-conf
 
 Parameters (Mode section):
  - `MODE_RG`=\<0-2\> **(M1)** - Specifies the Raspberry Gate operation mode. (default: 2)
-	0. Bridge(TBD in this version): This mode use bridging between WAN and LAN.
-	1. Secure-Bridge(TBD in this version): This mode use bridging between WAN and LAN with FW.
-	2. Router: This mode use routing.
+ 	- **0** Bridge(TBD in this version): This mode use bridging between WAN and LAN.
+	- **1** Secure-Bridge(TBD in this version): This mode use bridging between WAN and LAN with FW.
+	- **2** Router: This mode use routing.
  - `MODE_IPV4`=\<0-2\> **(M2)** - Specifies the IPv4 operation mode (for router mode). (default: 1)
-	0. NAT64: This mode dose not use IPv4 (using NAT64/DNS64).
-	1. DHCP: This mode use DHCP.
-	2. no-NAT: This mode dose not use NAT (w/o dynamic routing).
+	- **0** NAT64: This mode dose not use IPv4 (using NAT64/DNS64).
+	- **1** DHCP: This mode use DHCP.
+	- **2** no-NAT: This mode dose not use NAT (w/o dynamic routing).
  - `MODE_IPV6`=\<0-10\> **(M3)** - Specifies the IPv6 operation mode (for router mode). (default: 2)
-	0. not-use: This mode dose not use IPv6.
-	1. SLAAC-only: This mode use only SLAAC (no IPv6 DNS server).
-	2. SLAAC-RDNSS: This mode use SLAAC with RDNSS option.
-	3. SLAAC-OFLAG: This mode use SLAAC with stateless DHCPv6.
-	4. SLAAC-RDNSS-OFLAG: This mode use SLAAC with RDNSS option and stateless DHCPv6.
-	5. MFLAG: This mode use statefull DHCPv6.
-	6. RDNSS-MFLAG: This mode use RDNSS option and statefull DHCPv6.
-	7. SLAAC-RDNSS-MFLAG: This mode use SLAAC with RDNSS option and statefull DHCPv6.
-	8. SLAAC-RDNSS-MOFLAG: This mode use SLAAC with RDNSS option and statefull DHCPv6 (+o-flag).
-	9. SLAAC-DHCPv6: This mode use SLAAC and statefull DHCPv6 (no m-flag).
-	10. RFC8273: This mode use unique prefix per host (RFC 8273). 
+	- **0** not-use: This mode dose not use IPv6.
+	- **1** SLAAC-only: This mode use only SLAAC (no IPv6 DNS server).
+	- **2** SLAAC-RDNSS: This mode use SLAAC with RDNSS option.
+	- **3** SLAAC-OFLAG: This mode use SLAAC with stateless DHCPv6.
+	- **4** SLAAC-RDNSS-OFLAG: This mode use SLAAC with RDNSS option and stateless DHCPv6.
+	- **5** MFLAG: This mode use statefull DHCPv6.
+	- **6** RDNSS-MFLAG: This mode use RDNSS option and statefull DHCPv6.
+	- **7** SLAAC-RDNSS-MFLAG: This mode use SLAAC with RDNSS option and statefull DHCPv6.
+	- **8** SLAAC-RDNSS-MOFLAG: This mode use SLAAC with RDNSS option and statefull DHCPv6 (+o-flag).
+	- **9** SLAAC-DHCPv6: This mode use SLAAC and statefull DHCPv6 (no m-flag).
+	- **10** RFC8273: This mode use unique prefix per host (RFC 8273). 
  - `MODE_NAT6`=\<0-2\> **(M4)** - Specifies the IPv6 NAT mode (for router mode). (default: 2)
-	0. no-NAT: This mode dose not use NAT (w/o dynamic routing).
-	1. NPTv6: This mode use IPv6-to-IPv6 Network Prefix Transration (RFC 6296) (not working in this version).
-	2. NAPT6: This mode use Network Address Port Transration (IP masquerade for IPv6).
+	- **0** no-NAT: This mode dose not use NAT (w/o dynamic routing).
+	- **1** NPTv6: This mode use IPv6-to-IPv6 Network Prefix Transration (RFC 6296) (not working in this version).
+	- **2** NAPT6: This mode use Network Address Port Transration (IP masquerade for IPv6).
 
 Parameters (WAN section):
  - `WAN_IF`=\<device name\> **(W1)** - Specifies the device name for WAN interface (e.g. eth0/eth1/wlan0/ra0). (default: eth0)
