@@ -1,5 +1,5 @@
 #!/bin/sh
-# version 1.0.2
+# version 1.0.3
 
 INTERACTIVE=true
 CONFIG=./raspg.conf
@@ -1187,7 +1187,7 @@ do_set_hostapd_others() {
   CURRENT=$(get_config_var HOSTAPD_CC $CONFIG)
   CC="$1"
   while [ -z "$CC" ] && [ "$INTERACTIVE" = true ]; do
-    SSID=$(whiptail --inputbox "Please enter country code for hostapd service." 20 60 "$CURRENT" 3>&1 1>&2 2>&3)
+    CC=$(whiptail --inputbox "Please enter country code for hostapd service." 20 60 "$CURRENT" 3>&1 1>&2 2>&3)
     if [ $? -ne 0 ]; then
       return 0
     elif [ -z "$CC" ]; then
@@ -1197,7 +1197,7 @@ do_set_hostapd_others() {
   CURRENT=$(get_config_var HOSTAPD_MODE $CONFIG)
   MODE="$2"
   while [ -z "$MODE" ] && [ "$INTERACTIVE" = true ]; do
-    PASS=$(whiptail --inputbox "Please enter Wi-Fi mode (a/g/n) for hostapd service." 20 60 "$CURRENT" 3>&1 1>&2 2>&3)
+    MODE=$(whiptail --inputbox "Please enter Wi-Fi mode (a/g/n) for hostapd service." 20 60 "$CURRENT" 3>&1 1>&2 2>&3)
     if [ $? -ne 0 ]; then
       return 0
     elif [ -z "$MODE" ]; then
@@ -1207,7 +1207,7 @@ do_set_hostapd_others() {
   CURRENT=$(get_config_var HOSTAPD_CH $CONFIG)
   CH="$2"
   while [ -z "$CH" ] && [ "$INTERACTIVE" = true ]; do
-    PASS=$(whiptail --inputbox "Please enter Wi-Fi channel for hostapd service." 20 60 "$CURRENT" 3>&1 1>&2 2>&3)
+    CH=$(whiptail --inputbox "Please enter Wi-Fi channel for hostapd service." 20 60 "$CURRENT" 3>&1 1>&2 2>&3)
     if [ $? -ne 0 ]; then
       return 0
     elif [ -z "$CH" ]; then
