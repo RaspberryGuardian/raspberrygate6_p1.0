@@ -76,7 +76,7 @@ Parameters (Service section):
 	 - address_range=\<LAN prefix4\>.\<DHCP4_START\> - \<LAN prefix\>.\<DHCP4_END\>
  - `DHCP6_START`/`DHCP6_END`=\<number\> **(S5)** - Specifies the address range for DHCPv6 address pool. (default: 546:1 and 546:100)
 	 - address_range=\<LAN prefix6\>::\<DHCP6_START\> - \<LAN prefix\>::\<DHCP6_END\>
-- `NAT64_PREF`=\<IPv6 prefix\> - Specifies the NAT64 prefix. (default: 64:ff9b::/96)
+- `NAT64_PREF`=\<IPv6 prefix\> **(S6)** - Specifies the NAT64 prefix. (default: 64:ff9b::/96)
 
 Parameters (Wireless section):
  - `HOSTAPD_SSID`=\<ssid\> **(A2)** - Specifies SSID for hostapd service. (default: raspg)
@@ -86,7 +86,7 @@ Parameters (Wireless section):
  - `HOSTAPD_CH`=\<country code\> **(A3)** - Specifies Wi-Fi channel for hostapd service. (default: 11)
 
 Parameters (Others): These parameters can not be changed via raspg-conf script.
- - `VERBOSE`=\<yes or no\> - If yes, output detailed information from raspg-config script.
+ - `VERBOSE`=\<yes or no\> - If yes, output detailed information from raspg-config script. (default: yes)
  - `BRG_IF`=\<device name\> - Specifies the device name for bridge mode. (default: br0)
 
 ## Authors
