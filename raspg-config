@@ -28,7 +28,7 @@ set_config_var() {
     echo "ERROR(set_config): usage: set_config <key> <var> <file>." 1>&2
     return 1
   fi
-  sed -i -e "s/$1=\(.*\)/$1=$2/g" $3
+  sed -i -e "s@$1=\(.*\)@$1=$2@g" $3
 }
 
 # use function from raspi-config
