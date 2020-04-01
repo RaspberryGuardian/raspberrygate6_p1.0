@@ -1,5 +1,5 @@
 #!/bin/sh
-# version 1.0.3
+# version 1.0.4
 
 INTERACTIVE=true
 CONFIG=./raspg.conf
@@ -19,7 +19,7 @@ get_config_var() {
     echo "ERROR(get_config): usage: get_config <key> <file>." 1>&2
     return 1
   fi
-  sed -n "s/$1=\(.*\)$/\1/p" $2
+  sed -n "s/$1=\(.*\)$/\1/p" "$2"
 }
 
 #
@@ -28,7 +28,7 @@ set_config_var() {
     echo "ERROR(set_config): usage: set_config <key> <var> <file>." 1>&2
     return 1
   fi
-  sed -i -e "s@$1=\(.*\)@$1=$2@g" $3
+  sed -i -e "s@$1=\(.*\)@$1=$2@g" "$3"
 }
 
 # use function from raspi-config
@@ -45,7 +45,7 @@ calc_wt_size() {
   if [ "$WT_WIDTH" -gt 178 ]; then
     WT_WIDTH=120
   fi
-  WT_MENU_HEIGHT=$(($WT_HEIGHT-7))
+  WT_MENU_HEIGHT=$(( WT_HEIGHT - 7 ))
 }
 
 #
@@ -59,9 +59,9 @@ get_cidr4 () {
     echo "ERROR(get_cidr4): usage: get_cidr4 <ifid>." 1>&2
     return 1
   fi
-  ip addr show $1                                                     |
-   grep inet[^6]                                                      |
-   sed 's/.*inet[^6][^0-9]*\([0-9.]*\/[0-9]*\)[^0-9\/]*.*/\1/'        |
+  ip addr show "$1"							|
+   grep inet[^6]							|
+   sed 's/.*inet[^6][^0-9]*\([0-9.]*\/[0-9]*\)[^0-9\/]*.*/\1/'		|
    tail -1
   return $?
 }
@@ -72,10 +72,10 @@ get_cidr6 () {
     echo "ERROR(get_cidr6): usage: get_cidr6 <ifid>." 1>&2
     return 1
   fi
-  ip addr show $1                                                     |
-   grep inet6                                                         |
-   grep -v fe80                                                       |
-   sed 's/.*[[:blank:]]\([0-9a-f:]*:[0-9a-f:]*\/[0-9]*\).*/\1/'       |
+  ip addr show "$1"							|
+   grep inet6								|
+   grep -v fe80								|
+   sed 's/.*[[:blank:]]\([0-9a-f:]*:[0-9a-f:]*\/[0-9]*\).*/\1/'		|
    tail -1
   return $?
 }
@@ -86,11 +86,11 @@ get_prefix4 () {
     echo "ERROR(get_prefix4): usage: get_prefix4 <addr4/plen>." 1>&2
     return 1
   fi
-  local cmd=$(get_config_var CMD_SIPCALC $CONFIG)
-  local network=$($cmd -4 $1                                          |
-   grep "Network address"                                             |
+  cmd=$(get_config_var CMD_SIPCALC "$CONFIG")
+  network=$($cmd -4 "$1"						|
+   grep "Network address"						|
    sed 's/.*Network address[^0-9]*\([0-9.]*\)[^0-9\/]*.*/\1/')
-  local plen=`echo $1 | awk -F/ '{print $2}'`
+  plen=$(echo $1 | awk -F/ '{print $2}')
   echo "$network/$plen"
 }
 
@@ -100,9 +100,9 @@ get_pstring4 () {
     echo "ERROR(get_pstring4): usage: get_pstring4 <addr4/plen>." 1>&2
     return 1
   fi
-  local cmd=$(get_config_var CMD_SIPCALC $CONFIG)
-  $cmd -4 $1                                                          |
-   grep "Network address"                                             |
+  cmd=$(get_config_var CMD_SIPCALC "$CONFIG")
+  $cmd -4 "$1"								|
+   grep "Network address"						|
    sed 's/.*Network address[^0-9]*\([0-9.]*\)[^0-9\/]*./\1/'
 }
 
@@ -112,9 +112,9 @@ get_prefix6 () {
     echo "ERROR(get_prefix6): usage: get_prefix6 <addr/plen>." 1>&2
     return 1
   fi
-  local cmd=$(get_config_var CMD_SIPCALC $CONFIG)
-  $cmd -6 $1                                                          |
-   grep "Subnet prefix"                                               |
+  cmd=$(get_config_var CMD_SIPCALC "$CONFIG")
+  $cmd -6 "$1"								|
+   grep "Subnet prefix"							|
    sed 's/.*[[:blank:]]\([0-9a-f:]*:[0-9a-f:]*\/[0-9]*\).*/\1/'
 }
 
@@ -124,9 +124,9 @@ get_pstring6 () {
     echo "ERROR(get_pstring6): usage: get_pstring6 <prefix/plen>." 1>&2
     return 1
   fi
-  local cmd=$(get_config_var CMD_SIPCALC $CONFIG)
-  $cmd -6 $1                                                          |
-   grep "Compressed address"                                          |
+  cmd=$(get_config_var CMD_SIPCALC "$CONFIG")
+  $cmd -6 "$1"								|
+   grep "Compressed address"						|
    awk '{print $4}'
 }
 
@@ -140,31 +140,30 @@ make_hostapd_conf () {
     echo " type: router, bridge." 1>&2
     return 1
   fi
-
   case "$1" in
   router )
-    sed -e "s/__LANIF__/$LAN_IF/g" \
-        -e '/__BRIDGE__/d' \
-        -e "s/__SSID__/$HOSTAPD_SSID/g" \
-        -e "s/__CC__/$HOSTAPD_CC/g" \
-        -e "s/__MODE__/$HOSTAPD_MODE/g" \
-        -e "s/__CH__/$HOSTAPD_CH/g" \
-        -e "s/__PASS__/$HOSTAPD_PASS/g" \
-        $TEMPL_HOSTAPD > $CONF_HOSTAPD
+    sed -e "s/__LANIF__/$LAN_IF/g"					\
+        -e '/__BRIDGE__/d'						\
+        -e "s/__SSID__/$HOSTAPD_SSID/g"					\
+        -e "s/__CC__/$HOSTAPD_CC/g"					\
+        -e "s/__MODE__/$HOSTAPD_MODE/g"					\
+        -e "s/__CH__/$HOSTAPD_CH/g"					\
+        -e "s/__PASS__/$HOSTAPD_PASS/g"					\
+        "$TEMPL_HOSTAPD" > "$CONF_HOSTAPD"
   ;;
   bridge ) # TBD
-    sed -e "s/__LANIF__/$LAN_IF/g" \
-        -e "s/__BRIDGE__/bridge=$BRG_IF/g" \
-        -e "s/__SSID__/$HOSTAPD_SSID/g" \
-        -e "s/__CC__/$HOSTAPD_CC/g" \
-        -e "s/__MODE__/$HOSTAPD_MODE/g" \
-        -e "s/__CH__/$HOSTAPD_CH/g" \
-        -e "s/__PASS__/$HOSTAPD_PASS/g" \
-        $TEMPL_HOSTAPD > $CONF_HOSTAPD
+    sed -e "s/__LANIF__/$LAN_IF/g"					\
+        -e "s/__BRIDGE__/bridge=$BRG_IF/g"				\
+        -e "s/__SSID__/$HOSTAPD_SSID/g"					\
+        -e "s/__CC__/$HOSTAPD_CC/g"					\
+        -e "s/__MODE__/$HOSTAPD_MODE/g"					\
+        -e "s/__CH__/$HOSTAPD_CH/g"					\
+        -e "s/__PASS__/$HOSTAPD_PASS/g"					\
+        "$TEMPL_HOSTAPD" > "$CONF_HOSTAPD"
   ;;
-  * ) echo "ERROR(make_hostapd_conf): <type> must be 'router' or 'bridge'." 1>&2; return 1 ;;
+  * ) echo "ERROR(make_hostapd_conf): <type> must be 'router' or"	\
+           "'bridge'." 1>&2; return 1 ;;
   esac
-
   return $?
 }
 
@@ -174,26 +173,27 @@ make_radvd_conf () {
     echo "-- do make_radvd_conf $1 $2 $3 $3 $4 $5"
   fi
   if [ $# -lt 5 ]; then
-    echo "ERROR(make_radvd_conf): usage: make_radvd_conf <lflag> <aflag> <oflag> <mflag> <dns>." 1>&2
+    echo "ERROR(make_radvd_conf): usage: make_radvd_conf <lflag>"	\
+         "<aflag> <oflag> <mflag> <dns>." 1>&2
     echo " lflag/aflag/oflag/mflag/dns: on or off." 1>&2
     return 1
   fi
-  sed -e "s/__LANIF__/$LAN_IF/g" \
-      -e "s/__OFLAG__/$3/g" \
-      -e "s/__MFLAG__/$4/g" \
-      -e "s@__LANPREF6__@$LAN_PREF6@g" \
-      -e "s/__LFLAG__/$1/g" \
-      -e "s/__AFLAG__/$2/g" \
-      $TEMPL_RADVD > $CONF_RADVD
+  sed -e "s/__LANIF__/$LAN_IF/g"					\
+      -e "s/__OFLAG__/$3/g"						\
+      -e "s/__MFLAG__/$4/g"						\
+      -e "s@__LANPREF6__@$LAN_PREF6@g"					\
+      -e "s/__LFLAG__/$1/g"						\
+      -e "s/__AFLAG__/$2/g"						\
+      "$TEMPL_RADVD" > "$CONF_RADVD"
   if [ "X$5" = 'Xon' ]; then
     sed -i -e "s/__RDNSS__/     RDNSS $DNS_RDNSS$LF\
         {$LF\
                 AdvRDNSSLifetime 30;$LF\
-        };/g" \
-             $CONF_RADVD
+        };/g"								\
+        "$CONF_RADVD"
   else
-    sed -i -e '/__RDNSS__/d' \
-             $CONF_RADVD
+    sed -i -e '/__RDNSS__/d'						\
+        "$CONF_RADVD"
   fi
   return $?
 }
@@ -208,41 +208,40 @@ make_unbound_conf () {
     echo " type: v4only, dual, dns64." 1>&2
     return 1
   fi
-
   case "$1" in
   v4only )
-    sed -e "s/__IPV4ADDR__/    interface: $DNS_DHCP4/g" \
-        -e "s@__IPV4ACL__@    access-control: $LAN_PREF4 allow@g" \
-        -e '/__IPV6ADDR__/d' \
-        -e '/__IPV6ACL__/d' \
-        -e '/__DNS64__/d' \
-        $TEMPL_UNBOUND > $CONF_UNBOUND
+    sed -e "s/__IPV4ADDR__/    interface: $DNS_DHCP4/g"			\
+        -e "s@__IPV4ACL__@    access-control: $LAN_PREF4 allow@g"	\
+        -e '/__IPV6ADDR__/d'						\
+        -e '/__IPV6ACL__/d'						\
+        -e '/__DNS64__/d'						\
+        "$TEMPL_UNBOUND" > "$CONF_UNBOUND"
   ;;
   dual )
-    sed -e "s/__IPV4ADDR__/    interface: $DNS_DHCP4/g" \
-        -e "s@__IPV4ACL__@    access-control: $LAN_PREF4 allow@g" \
+    sed -e "s/__IPV4ADDR__/    interface: $DNS_DHCP4/g"			\
+        -e "s@__IPV4ACL__@    access-control: $LAN_PREF4 allow@g"	\
         -e "s/__IPV6ADDR__/    interface: $DNS_RDNSS$LF\
-    interface: $DNS_DHCP6/g" \
-        -e "s@__IPV6ACL__@    access-control: $LAN_PREF6 allow@g" \
-        -e '/__DNS64__/d' \
-        $TEMPL_UNBOUND > $CONF_UNBOUND
+    interface: $DNS_DHCP6/g"						\
+        -e "s@__IPV6ACL__@    access-control: $LAN_PREF6 allow@g"	\
+        -e '/__DNS64__/d'						\
+        "$TEMPL_UNBOUND" > "$CONF_UNBOUND"
   ;;
   dns64 )
     sed -e "s/__IPV6ADDR__/    interface: $DNS_RDNSS$LF\
-    interface: $DNS_DHCP6/g" \
-        -e "s@__IPV6ACL__@    access-control: $LAN_PREF6 allow@g" \
-        -e '/__IPV4ADDR__/d' \
-        -e '/__IPV4ACL__/d' \
+    interface: $DNS_DHCP6/g"						\
+        -e "s@__IPV6ACL__@    access-control: $LAN_PREF6 allow@g"	\
+        -e '/__IPV4ADDR__/d'						\
+        -e '/__IPV4ACL__/d'						\
         -e "s@__DNS64__@    module-config: \"dns64 iterator\"${LF}\
     dns64-prefix: $NAT64_PREF${LF}\
 forward-zone:${LF}\
     name: \".\"${LF}\
-    forward-addr: 8.8.8.8@g" \
-        $TEMPL_UNBOUND > $CONF_UNBOUND
+    forward-addr: 8.8.8.8@g"						\
+        "$TEMPL_UNBOUND > $CONF_UNBOUND"
   ;;
-  * ) echo "ERROR(make_unbound_conf): <type> must be 'v4only', 'dual' or 'dns64'." 1>&2; return 1 ;;
+  * ) echo "ERROR(make_unbound_conf): <type> must be 'v4only', 'dual'"	\
+           "or 'dns64'." 1>&2; return 1 ;;
   esac
-
   return $?
 }
 
@@ -252,30 +251,30 @@ make_def_dhcpd_conf () {
     echo "-- do make_def_dhcpd_conf $1"
   fi
   if [ $# -lt 1 ]; then
-    echo "ERROR(make_def_dhcpd_conf): usage: make_def_dhcpd_conf <type>." 1>&2
+    echo "ERROR(make_def_dhcpd_conf): usage: make_def_dhcpd_conf"	\
+         "<type>." 1>&2
     echo " type: v4only, v6only, dual." 1>&2
     return 1
   fi
-
   case "$1" in
   v4only )
-    sed -e "s/__LAN4IF__/$LAN_IF/g" \
-        -e "s/__LAN6IF__//g" \
-        $TEMPL_DEFAULT_DHCPD > $CONF_DEFAULT_DHCPD
+    sed -e "s/__LAN4IF__/$LAN_IF/g"					\
+        -e "s/__LAN6IF__//g"						\
+        "$TEMPL_DEFAULT_DHCPD" > "$CONF_DEFAULT_DHCPD"
   ;;
   v6only )
-    sed -e "s/__LAN4IF__//g" \
-        -e "s/__LAN6IF__/$LAN_IF/g" \
-        $TEMPL_DEFAULT_DHCPD > $CONF_DEFAULT_DHCPD
+    sed -e "s/__LAN4IF__//g"						\
+        -e "s/__LAN6IF__/$LAN_IF/g"					\
+        "$TEMPL_DEFAULT_DHCPD" > "$CONF_DEFAULT_DHCPD"
   ;;
   dual )
-    sed -e "s/__LAN4IF__/$LAN_IF/g" \
-        -e "s/__LAN6IF__/$LAN_IF/g" \
-        $TEMPL_DEFAULT_DHCPD > $CONF_DEFAULT_DHCPD
+    sed -e "s/__LAN4IF__/$LAN_IF/g"					\
+        -e "s/__LAN6IF__/$LAN_IF/g"					\
+        "$TEMPL_DEFAULT_DHCPD" > "$CONF_DEFAULT_DHCPD"
   ;;
-  * ) echo "ERROR(make_def_dhcpd_conf): <type> must be 'v4only', 'v6only' or 'dual'." 1>&2; return 1 ;;
+  * ) echo "ERROR(make_def_dhcpd_conf): <type> must be 'v4only',"	\
+           "'v6only' or 'dual'." 1>&2; return 1 ;;
   esac
-
   return $?
 }
 
@@ -284,22 +283,20 @@ make_dhcpd_conf () {
   if [ "$VERBOSE" = yes ]; then
     echo "-- do make_dhcpd_conf"
   fi
-
-  local subnet=$($CMD_SIPCALC -4 $LAN_PREF4                           |
-   grep "Network address"                                             |
+  subnet=$($CMD_SIPCALC -4 "$LAN_PREF4"					|
+   grep "Network address"						|
    sed 's/.*Network address[^0-9]*\([0-9.]*\)[^0-9\/]*.*/\1/')
-  local netmask=$($CMD_SIPCALC -4 $LAN_PREF4                          |
-   grep "Network mask"                                                |
-   grep -v -e bit -e hex                                              |
+  netmask=$($CMD_SIPCALC -4 "$LAN_PREF4"				|
+   grep "Network mask"							|
+   grep -v -e bit -e hex						|
    sed 's/.*Network mask[^0-9]*\([0-9.]*\)[^0-9\/]*.*/\1/')
-  local gateway=`echo $LAN_ADDR4 | awk -F/ '{print $1}'`
-  sed -e "s/__SUBNET__/subnet $subnet netmask $netmask/g" \
-      -e "s/__RANGE__/${DHCP4_RANGE}/g" \
-      -e "s/__DOMAIN__/$DOMAIN/g" \
-      -e "s/__DNSSRV__/$DNS_DHCP4/g" \
-      -e "s/__GATEWAY__/$gateway/g" \
-      $TEMPL_DHCPD > $CONF_DHCPD
-
+  gateway=$(echo "$LAN_ADDR4" | awk -F/ '{print $1}')
+  sed -e "s/__SUBNET__/subnet $subnet netmask $netmask/g"		\
+      -e "s/__RANGE__/${DHCP4_RANGE}/g"					\
+      -e "s/__DOMAIN__/$DOMAIN/g"					\
+      -e "s/__DNSSRV__/$DNS_DHCP4/g"					\
+      -e "s/__GATEWAY__/$gateway/g"					\
+      "$TEMPL_DHCPD" > "$CONF_DHCPD"
   return $?
 }
 
@@ -313,25 +310,24 @@ make_dhcpd6_conf () {
     echo " type: stateless, statefull." 1>&2
     return 1
   fi
-
   case "$1" in
   stateless )
-    sed -e "s@__LANPREF6__@$LAN_PREF6@g" \
-        -e "s/__DOMAIN__/$DOMAIN/g" \
-        -e "s/__DNSSRV__/$DNS_DHCP6/g" \
-        -e '/__RANGE__/d' \
-    $TEMPL_DHCP6D > $CONF_DHCP6D
+    sed -e "s@__LANPREF6__@$LAN_PREF6@g"				\
+        -e "s/__DOMAIN__/$DOMAIN/g"					\
+        -e "s/__DNSSRV__/$DNS_DHCP6/g"					\
+        -e '/__RANGE__/d'						\
+    "$TEMPL_DHCP6D" > "$CONF_DHCP6D"
   ;;
   statefull )
-    sed -e "s@__LANPREF6__@$LAN_PREF6@g" \
-        -e "s/__DOMAIN__/$DOMAIN/g" \
-        -e "s/__DNSSRV__/$DNS_DHCP6/g" \
-        -e "s/__RANGE__/range6 ${DHCP6_RANGE};/g" \
-    $TEMPL_DHCP6D > $CONF_DHCP6D
+    sed -e "s@__LANPREF6__@$LAN_PREF6@g"				\
+        -e "s/__DOMAIN__/$DOMAIN/g"					\
+        -e "s/__DNSSRV__/$DNS_DHCP6/g"					\
+        -e "s/__RANGE__/range6 ${DHCP6_RANGE};/g"			\
+    "$TEMPL_DHCP6D" > "$CONF_DHCP6D"
   ;;
-  * ) echo "ERROR(make_dhcpd6_conf): <type> must be 'stateless' or 'statefull'." 1>&2; return 1 ;;
+  * ) echo "ERROR(make_dhcpd6_conf): <type> must be 'stateless' or"	\
+           "'statefull'." 1>&2; return 1 ;;
   esac
-
   return $?
 }
 
@@ -340,17 +336,17 @@ enable_bridging () {
   if [ "$VERBOSE" = yes ]; then
     echo "-- do enable_bridging"
   fi
-  sudo ip addr flush dev $WAN_IF
-  sudo ip addr flush dev $LAN_IF
-  sudo ip addr flush dev $BRG_IF
-  sudo brctl addbr $BRG_IF
-  sudo brctl stp $BRG_IF off
-  sudo brctl addif $BRG_IF $WAN_IF $LAN_IF
-  sudo ip link set dev $WAN_IF promisc on
-  sudo ip link set dev $LAN_IF promisc on
-  sudo ip link set dev $WAN_IF up
-  sudo ip link set dev $LAN_IF up
-  sudo ip link set dev $BRG_IF up
+  sudo ip addr flush dev "$WAN_IF"
+  sudo ip addr flush dev "$LAN_IF"
+  sudo ip addr flush dev "$BRG_IF"
+  sudo brctl addbr "$BRG_IF"
+  sudo brctl stp "$BRG_IF" off
+  sudo brctl addif "$BRG_IF" "$WAN_IF" "$LAN_IF"
+  sudo ip link set dev "$WAN_IF" promisc on
+  sudo ip link set dev "$LAN_IF" promisc on
+  sudo ip link set dev "$WAN_IF" up
+  sudo ip link set dev "$LAN_IF" up
+  sudo ip link set dev "$BRG_IF" up
   return $?
 }
 
@@ -368,18 +364,17 @@ set_wan () {
       if [ "$VERBOSE" = yes ]; then
         echo " sudo ip -4 addr add $WAN_ADDR4 dev $WAN_IF"
       fi
-      sudo ip -4 addr add $WAN_ADDR4 dev $WAN_IF
-      # set default route
-
-      set_config_var LAST_WANIF $WAN_IF $CONFIG
+      sudo ip -4 addr add "$WAN_ADDR4" dev "$WAN_IF"
+      # set default route (TBD)
+      set_config_var LAST_WANIF "$WAN_IF" "$CONFIG"
     ;;
     6 )
       if [ "$VERBOSE" = yes ]; then
         echo " sudo ip -6 addr add $WAN_ADDR6 dev $LAN_IF"
       fi
-      sudo ip -6 addr add $WAN_ADDR6 dev $WAN_IF
+      sudo ip -6 addr add "$WAN_ADDR6" dev "$WAN_IF"
       # set default route (TBD)
-      set_config_var LAST_WANIF $WAN_IF $CONFIG
+      set_config_var LAST_WANIF "$WAN_IF" "$CONFIG"
     ;;
     * ) echo "ERROR(set_wan): <type> must be 4 or 6." 1>&2; return 1 ;;
   esac
@@ -400,8 +395,8 @@ set_lan () {
       if [ "$VERBOSE" = yes ]; then
         echo " sudo ip -4 addr add $LAN_ADDR4 dev $LAN_IF"
       fi
-      sudo ip -4 addr add $LAN_ADDR4 dev $LAN_IF
-      set_config_var LAST_LANIF $LAN_IF $CONFIG
+      sudo ip -4 addr add "$LAN_ADDR4" dev "$LAN_IF"
+      set_config_var LAST_LANIF "$LAN_IF" "$CONFIG"
     ;;
     6 )
       if [ "$VERBOSE" = yes ]; then
@@ -409,10 +404,10 @@ set_lan () {
         echo " sudo ip -6 addr add $DNS_RDNSS/64 dev $LAN_IF"
         echo " sudo ip -6 addr add $DNS_DHCP6/64 dev $LAN_IF"
       fi
-      sudo ip -6 addr add $LAN_ADDR6 dev $LAN_IF
-      sudo ip -6 addr add $DNS_RDNSS/64 dev $LAN_IF
-      sudo ip -6 addr add $DNS_DHCP6/64 dev $LAN_IF
-      set_config_var LAST_LANIF $LAN_IF $CONFIG
+      sudo ip -6 addr add "$LAN_ADDR6" dev "$LAN_IF"
+      sudo ip -6 addr add "$DNS_RDNSS"/64 dev "$LAN_IF"
+      sudo ip -6 addr add "$DNS_DHCP6"/64 dev "$LAN_IF"
+      set_config_var LAST_LANIF "$LAN_IF" "$CONFIG"
     ;;
     * ) echo "ERROR(set_lan): <type> must be 4 or 6." 1>&2; return 1 ;;
   esac
@@ -424,10 +419,10 @@ reset_wan () {
   if [ "$VERBOSE" = yes ]; then
     echo "-- do reset_wan at $LAST_WANIF"
   fi
-  sudo ip -4 addr flush dev $LAST_WANIF
-  sudo ip -6 addr flush dev $LAST_WANIF scope global
-  sudo ip link set down $LAST_WANIF
-  sudo ip link set up $LAST_WANIF
+  sudo ip -4 addr flush dev "$LAST_WANIF"
+  sudo ip -6 addr flush dev "$LAST_WANIF" scope global
+  sudo ip link set down "$LAST_WANIF"
+  sudo ip link set up "$LAST_WANIF"
   return 0
 }
 
@@ -436,10 +431,10 @@ reset_lan () {
   if [ "$VERBOSE" = yes ]; then
     echo "-- do reset_lan at $LAST_LANIF"
   fi
-  sudo ip -4 addr flush dev $LAST_LANIF
-  sudo ip -6 addr flush dev $LAST_LANIF scope global
-  sudo ip link set down $LAST_LANIF
-  sudo ip link set up $LAST_LANIF
+  sudo ip -4 addr flush dev "$LAST_LANIF"
+  sudo ip -6 addr flush dev "$LAST_LANIF" scope global
+  sudo ip link set down "$LAST_LANIF"
+  sudo ip link set up "$LAST_LANIF"
   return 0
 }
 
@@ -460,7 +455,7 @@ enable_napt4 () {
     echo "-- do enable_napt4"
     echo " iptables -t nat -A POSTROUTING -o $WAN_IF -j MASQUERADE"
   fi
-  sudo iptables -t nat -A POSTROUTING -o $WAN_IF -j MASQUERADE
+  sudo iptables -t nat -A POSTROUTING -o "$WAN_IF" -j MASQUERADE
   return $?
 }
 
@@ -484,7 +479,7 @@ enable_v6routing () {
   sudo sysctl -w net.ipv6.conf.all.accept_redirects=0
 
   # accept RA on WAN_IF only
-  sudo sysctl -w net.ipv6.conf.$WAN_IF.accept_ra=2
+  sudo sysctl -w net.ipv6.conf."$WAN_IF".accept_ra=2
   return $?
 }
 
@@ -492,9 +487,11 @@ enable_v6routing () {
 enable_napt6 () {
   if [ "$VERBOSE" = yes ]; then
     echo "-- do enable_napt6"
-    echo " ip6tables -t nat -A POSTROUTING -s $LAN_PREF6 -o $WAN_IF -j MASQUERADE"
+    echo " ip6tables -t nat -A POSTROUTING -s $LAN_PREF6 -o $WAN_IF"	\
+         "-j MASQUERADE"
   fi
-  sudo ip6tables -t nat -A POSTROUTING -s $LAN_PREF6 -o $WAN_IF -j MASQUERADE
+  sudo ip6tables -t nat -A POSTROUTING -s "$LAN_PREF6" -o "$WAN_IF"	\
+                 -j MASQUERADE
   return $?
 }
 
@@ -502,20 +499,25 @@ enable_napt6 () {
 enable_nptv6 () {
   if [ "$VERBOSE" = yes ]; then
     echo "-- do enable_nptv6"
-    echo " ip6tables -t mangle -I POSTROUTING -o $WAN_IF -s $LAN_PREF6 -j SNPT --src-pfx $LAN_PREF6 --dst-pfx $WAN_PREF6"
-    echo " ip6tables -t mangle -I PREROUTING -i $LAN_IF -d $WAN_PREF6 -j DNPT --src-pfx $WAN_PREF6 --dst-pfx $LAN_PREF6"
+    echo " ip6tables -t mangle -I POSTROUTING -o $WAN_IF -s $LAN_PREF6"	\
+         "-j SNPT --src-pfx $LAN_PREF6 --dst-pfx $WAN_PREF6"
+    echo " ip6tables -t mangle -I PREROUTING -i $LAN_IF -d $WAN_PREF6"	\
+         "-j DNPT --src-pfx $WAN_PREF6 --dst-pfx $LAN_PREF6"
   fi
   sudo sysctl -w net.ipv6.conf.all.proxy_ndp=1
 
-  sudo ip6tables -t mangle -I POSTROUTING -o $WAN_IF -s $LAN_PREF6 -j SNPT --src-pfx $LAN_PREF6 --dst-pfx $WAN_PREF6
-  sudo ip6tables -t mangle -I PREROUTING -i $LAN_IF -d $WAN_PREF6 -j DNPT --src-pfx $WAN_PREF6 --dst-pfx $LAN_PREF6
+  sudo ip6tables -t mangle -I POSTROUTING -o "$WAN_IF" -s "$LAN_PREF6"	\
+                 -j SNPT --src-pfx "$LAN_PREF6" --dst-pfx "$WAN_PREF6"
+  sudo ip6tables -t mangle -I PREROUTING -i "$LAN_IF" -d "$WAN_PREF6"	\
+                 -j DNPT --src-pfx "$WAN_PREF6" --dst-pfx "$LAN_PREF6"
   return $?
 }
 
 #
 disable_send_redirect () {
   if [ "$VERBOSE" = yes ]; then
-    echo "-- do disable_send_redirect: ip6tables -A OUTPUT -p icmpv6 --icmpv6-type redirect -j DROP"
+    echo "-- do disable_send_redirect: ip6tables -A OUTPUT -p icmpv6"	\
+         "--icmpv6-type redirect -j DROP"
   fi
   sudo ip6tables -A OUTPUT -p icmpv6 --icmpv6-type redirect -j DROP
 }
@@ -544,15 +546,14 @@ enable_nat64 () {
   fi
   sudo sysctl -w net.ipv4.conf.all.forwarding=1
   sudo sysctl -w net.ipv6.conf.all.forwarding=1
-
   # disable offload
 #  sudo $CMD_ETHTOOL --offload $WAN_IF gro off
 #  sudo $CMD_ETHTOOL --offload $WAN_IF lro off
 #  sudo $CMD_ETHTOOL --offload $LAN_IF gro off
 #  sudo $CMD_ETHTOOL --offload $LAN_IF lro off
-
+  # enable jool
   sudo modprobe jool
-  sudo $CMD_JOOL instance add "nat64" --iptables --pool6 $NAT64_PREF
+  sudo "$CMD_JOOL" instance add "nat64" --iptables --pool6 "$NAT64_PREF"
   sudo ip6tables -t mangle -A PREROUTING -j JOOL --instance "nat64"
   sudo iptables -t mangle -A PREROUTING -j JOOL --instance "nat64"
   return $?
@@ -582,10 +583,9 @@ reset_sysctl () {
   # for enable_v6routing
   sudo sysctl -w net.ipv6.conf.all.forwarding=0
   sudo sysctl -w net.ipv6.conf.all.accept_redirects=1
-  sudo sysctl -w net.ipv6.conf.$WAN_IF.accept_ra=1
+  sudo sysctl -w net.ipv6.conf."$WAN_IF".accept_ra=1
   # for enable_nptv6
   sudo sysctl -w net.ipv6.conf.all.proxy_ndp=0
-
   return $?
 }
 
@@ -604,7 +604,7 @@ do_select_rgmode() {
   if [ $RET -eq 1 ]; then
     return 0
   elif [ $RET -eq 0 ]; then
-    set_config_var MODE_RG $TYPE $CONFIG
+    set_config_var MODE_RG "$TYPE" "$CONFIG"
     case $TYPE in
       0 ) STATUS=Bridge ;;
       1 ) STATUS=Secure-Bridge ;;
@@ -632,7 +632,7 @@ do_select_v4mode() {
   if [ $RET -eq 1 ]; then
     return 0
   elif [ $RET -eq 0 ]; then
-    set_config_var MODE_IPV4 $TYPE $CONFIG
+    set_config_var MODE_IPV4 "$TYPE" "$CONFIG"
     case $TYPE in
       0 ) STATUS=NAT64 ;;
       1 ) STATUS=DHCP ;;
@@ -668,7 +668,7 @@ do_select_v6mode() {
   if [ $RET -eq 1 ]; then
     return 0
   elif [ $RET -eq 0 ]; then
-    set_config_var MODE_IPV6 $TYPE $CONFIG
+    set_config_var MODE_IPV6 "$TYPE" "$CONFIG"
     case "$TYPE" in
       0 ) STATUS="not-use" ;;
       1 ) STATUS="SLAAC-only" ;;
@@ -704,7 +704,7 @@ do_select_nat6mode() {
   if [ $RET -eq 1 ]; then
     return 0
   elif [ $RET -eq 0 ]; then
-    set_config_var MODE_NAT6 $TYPE $CONFIG
+    set_config_var MODE_NAT6 "$TYPE" "$CONFIG"
     case $TYPE in
       0 ) STATUS="no-NAT" ;;
       1 ) STATUS=NPTv6 ;;
@@ -743,7 +743,7 @@ do_mode_menu() {
 
 # W1
 do_set_wandev() {
-  CURRENT=$(get_config_var WAN_IF $CONFIG)
+  CURRENT=$(get_config_var WAN_IF "$CONFIG")
   NEW="$1"
   while [ -z "$NEW" ] && [ "$INTERACTIVE" = true ]; do
     NEW=$(whiptail --inputbox "Please enter the device name of WAN interface (e.g. wlan0/ra0/eth0)." 20 60 "$CURRENT" 3>&1 1>&2 2>&3)
@@ -753,8 +753,8 @@ do_set_wandev() {
       whiptail --msgbox "This parameter cannot be empty. Please try again." 20 60
     fi
   done
-  set_config_var LAST_WANIF $CURRENT $CONFIG
-  set_config_var WAN_IF $NEW $CONFIG
+  set_config_var LAST_WANIF "$CURRENT" "$CONFIG"
+  set_config_var WAN_IF "$NEW" "$CONFIG"
   if [ -n "$NEW" ] && [ "$INTERACTIVE" = true ]; then
     whiptail --msgbox "The device name of WAN interface is $NEW." 20 60 1
   fi
@@ -762,7 +762,7 @@ do_set_wandev() {
 
 # W2
 do_set_wan4addr() {
-  CURRENT=$(get_config_var WAN_ADDR4 $CONFIG)
+  CURRENT=$(get_config_var WAN_ADDR4 "$CONFIG")
   NEW="$1"
   while [ -z "$NEW" ] && [ "$INTERACTIVE" = true ]; do
     NEW=$(whiptail --inputbox "Please enter the IPv4 address on WAN interface (CIDR format). If 'auto', it will be set automatically." 20 60 "$CURRENT" 3>&1 1>&2 2>&3)
@@ -772,7 +772,7 @@ do_set_wan4addr() {
       whiptail --msgbox "This parameter cannot be empty. Please try again." 20 60
     fi
   done
-  set_config_var WAN_ADDR4 $NEW $CONFIG
+  set_config_var WAN_ADDR4 "$NEW" "$CONFIG"
   if [ -n "$NEW" ] && [ "$INTERACTIVE" = true ]; then
     whiptail --msgbox "The IPv4 address on WAN interface is ${NEW}" 20 60 1
   fi
@@ -780,7 +780,7 @@ do_set_wan4addr() {
 
 # W3
 do_set_wan6addr() {
-  CURRENT=$(get_config_var WAN_ADDR6 $CONFIG)
+  CURRENT=$(get_config_var WAN_ADDR6 "$CONFIG")
   NEW="$1"
   while [ -z "$NEW" ] && [ "$INTERACTIVE" = true ]; do
     NEW=$(whiptail --inputbox "Please enter the IPv6 address on WAN interface (CIDR format). If 'auto', it will be set automatically." 20 60 "$CURRENT" 3>&1 1>&2 2>&3)
@@ -790,7 +790,7 @@ do_set_wan6addr() {
       whiptail --msgbox "This parameter cannot be empty. Please try again." 20 60
     fi
   done
-  set_config_var WAN_ADDR6 $NEW $CONFIG
+  set_config_var WAN_ADDR6 "$NEW" "$CONFIG"
   if [ -n "$NEW" ] && [ "$INTERACTIVE" = true ]; then
     whiptail --msgbox "The IPv6 address on WAN interface is $NEW" 20 60 1
   fi
@@ -798,7 +798,7 @@ do_set_wan6addr() {
 
 # W4
 do_set_gw4addr() {
-  CURRENT=$(get_config_var GW_ADDR4 $CONFIG)
+  CURRENT=$(get_config_var GW_ADDR4 "$CONFIG")
   NEW="$1"
   while [ -z "$NEW" ] && [ "$INTERACTIVE" = true ]; do
     NEW=$(whiptail --inputbox "Please enter the IPv4 address of Default Gateway. If 'auto', it will be set automatically." 20 60 "$CURRENT" 3>&1 1>&2 2>&3)
@@ -808,7 +808,7 @@ do_set_gw4addr() {
       whiptail --msgbox "This parameter cannot be empty. Please try again." 20 60
     fi
   done
-  set_config_var GW_ADDR4 $NEW $CONFIG
+  set_config_var GW_ADDR4 "$NEW" "$CONFIG"
   if [ -n "$NEW" ] && [ "$INTERACTIVE" = true ]; then
     whiptail --msgbox "The IPv4 address of Default Gateway is ${NEW}" 20 60 1
   fi
@@ -816,7 +816,7 @@ do_set_gw4addr() {
 
 # W5
 do_set_gw6addr() {
-  CURRENT=$(get_config_var GW_ADDR6 $CONFIG)
+  CURRENT=$(get_config_var GW_ADDR6 "$CONFIG")
   NEW="$1"
   while [ -z "$NEW" ] && [ "$INTERACTIVE" = true ]; do
     NEW=$(whiptail --inputbox "Please enter the IPv6 address of Default Gateway. If 'auto', it will be set automatically." 20 60 "$CURRENT" 3>&1 1>&2 2>&3)
@@ -826,7 +826,7 @@ do_set_gw6addr() {
       whiptail --msgbox "This parameter cannot be empty. Please try again." 20 60
     fi
   done
-  set_config_var GW_ADDR6 $NEW $CONFIG
+  set_config_var GW_ADDR6 "$NEW" "$CONFIG"
   if [ -n "$NEW" ] && [ "$INTERACTIVE" = true ]; then
     whiptail --msgbox "The IPv6 address of Default Gateway is $NEW" 20 60 1
   fi
@@ -860,7 +860,7 @@ do_wan_menu() {
 
 # L1
 do_set_landev() {
-  CURRENT=$(get_config_var LAN_IF $CONFIG)
+  CURRENT=$(get_config_var LAN_IF "$CONFIG")
   NEW="$1"
   while [ -z "$NEW" ] && [ "$INTERACTIVE" = true ]; do
     NEW=$(whiptail --inputbox "Please enter the device name of LAN interface (e.g. wlan0/ra0/eth0)." 20 60 "$CURRENT" 3>&1 1>&2 2>&3)
@@ -870,8 +870,8 @@ do_set_landev() {
       whiptail --msgbox "This parameter cannot be empty. Please try again." 20 60
     fi
   done
-  set_config_var LAST_LANIF $CURRENT $CONFIG
-  set_config_var LAN_IF $NEW $CONFIG
+  set_config_var LAST_LANIF "$CURRENT" "$CONFIG"
+  set_config_var LAN_IF "$NEW" "$CONFIG"
   if [ -n "$NEW" ] && [ "$INTERACTIVE" = true ]; then
     whiptail --msgbox "The device name of LAN interface is $NEW." 20 60 1
   fi
@@ -886,14 +886,14 @@ do_hostapd() {
   else
     RET=$1
   fi
-  if [ $RET -eq 0 ]; then
+  if [ "$RET" -eq 0 ]; then
     USE_HOSTAPD=yes
     STATUS=enabled
-  elif [ $RET -eq 1 ]; then
+  elif [ "$RET" -eq 1 ]; then
     USE_HOSTAPD=no
     STATUS=disabled
   else
-    return $RET
+    return "$RET"
   fi
   if [ "$INTERACTIVE" = true ]; then
     whiptail --msgbox "The hostapd is $STATUS" 20 60 1
@@ -902,7 +902,7 @@ do_hostapd() {
 
 # L3
 do_set_lan4addr() {
-  CURRENT=$(get_config_var LAN_ADDR4 $CONFIG)
+  CURRENT=$(get_config_var LAN_ADDR4 "$CONFIG")
   NEW="$1"
   while [ -z "$NEW" ] && [ "$INTERACTIVE" = true ]; do
     NEW=$(whiptail --inputbox "Please enter the IPv4 address on LAN interface (CIDR format)." 20 60 "$CURRENT" 3>&1 1>&2 2>&3)
@@ -912,7 +912,7 @@ do_set_lan4addr() {
       whiptail --msgbox "This parameter cannot be empty. Please try again." 20 60
     fi
   done
-  set_config_var LAN_ADDR4 $NEW $CONFIG
+  set_config_var LAN_ADDR4 "$NEW" "$CONFIG"
   if [ -n "$NEW" ] && [ "$INTERACTIVE" = true ]; then
     whiptail --msgbox "The IPv4 address on LAN interface is $NEW." 20 60 1
   fi
@@ -920,7 +920,7 @@ do_set_lan4addr() {
 
 # L4
 do_set_lan6addr() {
-  CURRENT=$(get_config_var LAN_ADDR6 $CONFIG)
+  CURRENT=$(get_config_var LAN_ADDR6 "$CONFIG")
   NEW="$1"
   while [ -z "$NEW" ] && [ "$INTERACTIVE" = true ]; do
     NEW=$(whiptail --inputbox "Please enter the IPv6 address on LAN interface (CIDR format)." 20 60 "$CURRENT" 3>&1 1>&2 2>&3)
@@ -930,7 +930,7 @@ do_set_lan6addr() {
       whiptail --msgbox "This parameter cannot be empty. Please try again." 20 60
     fi
   done
-  set_config_var LAN_ADDR6 $NEW $CONFIG
+  set_config_var LAN_ADDR6 "$NEW" "$CONFIG"
   if [ -n "$NEW" ] && [ "$INTERACTIVE" = true ]; then
     whiptail --msgbox "The IPv6 address on LAN interface is $NEW." 20 60 1
   fi
@@ -962,7 +962,7 @@ do_lan_menu() {
 
 # S1
 do_set_domain() {
-  CURRENT=$(get_config_var DOMAIN $CONFIG)
+  CURRENT=$(get_config_var DOMAIN "$CONFIG")
   NEW="$1"
   while [ -z "$NEW" ] && [ "$INTERACTIVE" = true ]; do
     NEW=$(whiptail --inputbox "Please enter the domain name." 20 60 "$CURRENT" 3>&1 1>&2 2>&3)
@@ -972,7 +972,7 @@ do_set_domain() {
       whiptail --msgbox "This parameter cannot be empty. Please try again." 20 60
     fi
   done
-  set_config_var DOMAIN $NEW $CONFIG
+  set_config_var DOMAIN "$NEW" "$CONFIG"
   if [ -n "$NEW" ] && [ "$INTERACTIVE" = true ]; then
     whiptail --msgbox "The domain name is $NEW." 20 60 1
   fi
@@ -980,10 +980,10 @@ do_set_domain() {
 
 # S2
 do_set_dnsrdnss() {
-  LAN_ADDR6=$(get_config_var LAN_ADDR6 $CONFIG)
-  LAN_PREF6=$(get_prefix6 $LAN_ADDR6)
-  LAN_PSTR6=$(get_pstring6 $LAN_PREF6)
-  CURRENT=$(get_config_var DNS_RDNSS_ID $CONFIG)
+  LAN_ADDR6=$(get_config_var LAN_ADDR6 "$CONFIG")
+  LAN_PREF6=$(get_prefix6 "$LAN_ADDR6")
+  LAN_PSTR6=$(get_pstring6 "$LAN_PREF6")
+  CURRENT=$(get_config_var DNS_RDNSS_ID "$CONFIG")
   NEW="$1"
   while [ -z "$NEW" ] && [ "$INTERACTIVE" = true ]; do
     NEW=$(whiptail --inputbox "Please enter the interface id of DNS server's IPv6 address for RDNSS option ($LAN_PSTR6<num>)." 20 60 "$CURRENT" 3>&1 1>&2 2>&3)
@@ -993,7 +993,7 @@ do_set_dnsrdnss() {
       whiptail --msgbox "This parameter cannot be empty. Please try again." 20 60
     fi
   done
-  set_config_var DNS_RDNSS_ID $NEW $CONFIG
+  set_config_var DNS_RDNSS_ID "$NEW" "$CONFIG"
   if [ -n "$NEW" ] && [ "$INTERACTIVE" = true ]; then
     whiptail --msgbox "The DNS server's IPv6 address for RDNSS option is $LAN_PSTR6$NEW." 20 60 1
   fi
@@ -1001,10 +1001,10 @@ do_set_dnsrdnss() {
 
 # S3
 do_set_dnsdhcp6() {
-  LAN_ADDR6=$(get_config_var LAN_ADDR6 $CONFIG)
-  LAN_PREF6=$(get_prefix6 $LAN_ADDR6)
-  LAN_PSTR6=$(get_pstring6 $LAN_PREF6)
-  CURRENT=$(get_config_var DNS_DHCP6_ID $CONFIG)
+  LAN_ADDR6=$(get_config_var LAN_ADDR6 "$CONFIG")
+  LAN_PREF6=$(get_prefix6 "$LAN_ADDR6")
+  LAN_PSTR6=$(get_pstring6 "$LAN_PREF6")
+  CURRENT=$(get_config_var DNS_DHCP6_ID "$CONFIG")
   NEW="$1"
   while [ -z "$NEW" ] && [ "$INTERACTIVE" = true ]; do
     NEW=$(whiptail --inputbox "Please enter the interface id of DNS server's IPv6 address for DHCPv6 service ($LAN_PSTR6<num>)." 20 60 "$CURRENT" 3>&1 1>&2 2>&3)
@@ -1014,7 +1014,7 @@ do_set_dnsdhcp6() {
       whiptail --msgbox "This parameter cannot be empty. Please try again." 20 60
     fi
   done
-  set_config_var DNS_DHCP6_ID $NEW $CONFIG
+  set_config_var DNS_DHCP6_ID "$NEW" "$CONFIG"
   if [ -n "$NEW" ] && [ "$INTERACTIVE" = true ]; then
     whiptail --msgbox "The DNS server's IPv6 address for DHCPv6 service is $LAN_PSTR6$NEW." 20 60 1
   fi
@@ -1022,9 +1022,9 @@ do_set_dnsdhcp6() {
 
 # S4
 do_set_dhcp4range() {
-  LAN_ADDR4=$(get_config_var LAN_ADDR4 $CONFIG)
-  LAN_PSTR4=$(get_pstring4 $LAN_ADDR4)
-  CURRENT=$(get_config_var DHCP4_START $CONFIG)
+  LAN_ADDR4=$(get_config_var LAN_ADDR4 "$CONFIG")
+  LAN_PSTR4=$(get_pstring4 "$LAN_ADDR4")
+  CURRENT=$(get_config_var DHCP4_START "$CONFIG")
   START="$1"
   while [ -z "$START" ] && [ "$INTERACTIVE" = true ]; do
     START=$(whiptail --inputbox "Please enter the host part of first IPv4 address in DHCPv4 address pool ($LAN_PSTR4<num>)." 20 60 "$CURRENT" 3>&1 1>&2 2>&3)
@@ -1034,7 +1034,7 @@ do_set_dhcp4range() {
       whiptail --msgbox "This parameter cannot be empty. Please try again." 20 60
     fi
   done
-  CURRENT=$(get_config_var DHCP4_END $CONFIG)
+  CURRENT=$(get_config_var DHCP4_END "$CONFIG")
   END="$2"
   while [ -z "$END" ] && [ "$INTERACTIVE" = true ]; do
     END=$(whiptail --inputbox "Please enter the host part of final IPv4 address in DHCPv4 address pool ($LAN_PSTR4<num>)." 20 60 "$CURRENT" 3>&1 1>&2 2>&3)
@@ -1044,8 +1044,8 @@ do_set_dhcp4range() {
       whiptail --msgbox "This parameter cannot be empty. Please try again." 20 60
     fi
   done
-  set_config_var DHCP4_START $START $CONFIG
-  set_config_var DHCP4_END $END $CONFIG
+  set_config_var DHCP4_START "$START" "$CONFIG"
+  set_config_var DHCP4_END "$END" "$CONFIG"
   if [ "${INTERACTIVE}" = true ]; then
     whiptail --msgbox "The IPv4 address range for DHCPv4 service is from $LAN_PSTR4$START to $LAN_PSTR4$END." 20 60 1
   fi
@@ -1053,10 +1053,10 @@ do_set_dhcp4range() {
 
 # S5
 do_set_dhcp6range() {
-  LAN_ADDR6=$(get_config_var LAN_ADDR6 $CONFIG)
-  LAN_PREF6=$(get_prefix6 $LAN_ADDR6)
-  LAN_PSTR6=$(get_pstring6 $LAN_PREF6)
-  CURRENT=$(get_config_var DHCP6_START $CONFIG)
+  LAN_ADDR6=$(get_config_var LAN_ADDR6 "$CONFIG")
+  LAN_PREF6=$(get_prefix6 "$LAN_ADDR6")
+  LAN_PSTR6=$(get_pstring6 "$LAN_PREF6")
+  CURRENT=$(get_config_var DHCP6_START "$CONFIG")
   START="$1"
   while [ -z "$START" ] && [ "$INTERACTIVE" = true ]; do
     START=$(whiptail --inputbox "Please enter the interface id of first IPv6 address in DHCPv6 address pool ($LAN_PSTR6<num>)." 20 60 "$CURRENT" 3>&1 1>&2 2>&3)
@@ -1066,7 +1066,7 @@ do_set_dhcp6range() {
       whiptail --msgbox "This parameter cannot be empty. Please try again." 20 60
     fi
   done
-  CURRENT=$(get_config_var DHCP6_END $CONFIG)
+  CURRENT=$(get_config_var DHCP6_END "$CONFIG")
   END="$2"
   while [ -z "$END" ] && [ "$INTERACTIVE" = true ]; do
     END=$(whiptail --inputbox "Please enter the interface id of final IPv6 address in DHCPv6 address pool ($LAN_PSTR6<num>)." 20 60 "$CURRENT" 3>&1 1>&2 2>&3)
@@ -1076,8 +1076,8 @@ do_set_dhcp6range() {
       whiptail --msgbox "This parameter cannot be empty. Please try again." 20 60
     fi
   done
-  set_config_var DHCP6_START $START $CONFIG
-  set_config_var DHCP6_END $END $CONFIG
+  set_config_var DHCP6_START "$START" "$CONFIG"
+  set_config_var DHCP6_END "$END" "$CONFIG"
   if [ "$INTERACTIVE" = true ]; then
     whiptail --msgbox "The IPv6 address range for DHCPv6 service is from $LAN_PSTR6$START to $LAN_PSTR6$END." 20 60 1
   fi
@@ -1085,7 +1085,7 @@ do_set_dhcp6range() {
 
 # S6
 do_set_nat64pref() {
-  CURRENT=$(get_config_var NAT64_PREF $CONFIG)
+  CURRENT=$(get_config_var NAT64_PREF "$CONFIG")
   NEW="$1"
   while [ -z "$NEW" ] && [ "$INTERACTIVE" = true ]; do
     NEW=$(whiptail --inputbox "Please enter the NAT64 prefix (default is 64:ff9b::/96)." 20 60 "$CURRENT" 3>&1 1>&2 2>&3)
@@ -1095,7 +1095,7 @@ do_set_nat64pref() {
       whiptail --msgbox "This parameter cannot be empty. Please try again." 20 60
     fi
   done
-  set_config_var NAT64_PREF $NEW $CONFIG
+  set_config_var NAT64_PREF "$NEW" "$CONFIG"
   if [ -n "$NEW" ] && [ "$INTERACTIVE" = true ]; then
     whiptail --msgbox "The NAT64 prefix is $NEW." 20 60 1
   fi
@@ -1155,7 +1155,7 @@ do_set_ssid_pass() {
 
 # A2
 do_set_hostapd_ssid() {
-  CURRENT=$(get_config_var HOSTAPD_SSID $CONFIG)
+  CURRENT=$(get_config_var HOSTAPD_SSID "$CONFIG")
   SSID="$1"
   while [ -z "$SSID" ] && [ "$INTERACTIVE" = true ]; do
     SSID=$(whiptail --inputbox "Please enter SSID for hostapd service." 20 60 "$CURRENT" 3>&1 1>&2 2>&3)
@@ -1165,7 +1165,7 @@ do_set_hostapd_ssid() {
       whiptail --msgbox "This parameter cannot be empty. Please try again." 20 60
     fi
   done
-  CURRENT=$(get_config_var HOSTAPD_PASS $CONFIG)
+  CURRENT=$(get_config_var HOSTAPD_PASS "$CONFIG")
   PASS="$2"
   while [ -z "$PASS" ] && [ "$INTERACTIVE" = true ]; do
     PASS=$(whiptail --passwordbox "Please enter passphrase for hostapd service." 20 60 "$CURRENT" 3>&1 1>&2 2>&3)
@@ -1175,8 +1175,8 @@ do_set_hostapd_ssid() {
       whiptail --msgbox "This parameter cannot be empty. Please try again." 20 60
     fi
   done
-  set_config_var HOSTAPD_SSID $SSID $CONFIG
-  set_config_var HOSTAPD_PASS $PASS $CONFIG
+  set_config_var HOSTAPD_SSID "$SSID" "$CONFIG"
+  set_config_var HOSTAPD_PASS "$PASS" "$CONFIG"
   if [ "${INTERACTIVE}" = true ]; then
     whiptail --msgbox "SSID for hostapd is $SSID." 20 60 1
   fi
@@ -1184,7 +1184,7 @@ do_set_hostapd_ssid() {
 
 # A3
 do_set_hostapd_others() {
-  CURRENT=$(get_config_var HOSTAPD_CC $CONFIG)
+  CURRENT=$(get_config_var HOSTAPD_CC "$CONFIG")
   CC="$1"
   while [ -z "$CC" ] && [ "$INTERACTIVE" = true ]; do
     CC=$(whiptail --inputbox "Please enter country code for hostapd service." 20 60 "$CURRENT" 3>&1 1>&2 2>&3)
@@ -1194,7 +1194,7 @@ do_set_hostapd_others() {
       whiptail --msgbox "This parameter cannot be empty. Please try again." 20 60
     fi
   done
-  CURRENT=$(get_config_var HOSTAPD_MODE $CONFIG)
+  CURRENT=$(get_config_var HOSTAPD_MODE "$CONFIG")
   MODE="$2"
   while [ -z "$MODE" ] && [ "$INTERACTIVE" = true ]; do
     MODE=$(whiptail --inputbox "Please enter Wi-Fi mode (a/g/n) for hostapd service." 20 60 "$CURRENT" 3>&1 1>&2 2>&3)
@@ -1204,7 +1204,7 @@ do_set_hostapd_others() {
       whiptail --msgbox "This parameter cannot be empty. Please try again." 20 60
     fi
   done
-  CURRENT=$(get_config_var HOSTAPD_CH $CONFIG)
+  CURRENT=$(get_config_var HOSTAPD_CH "$CONFIG")
   CH="$2"
   while [ -z "$CH" ] && [ "$INTERACTIVE" = true ]; do
     CH=$(whiptail --inputbox "Please enter Wi-Fi channel for hostapd service." 20 60 "$CURRENT" 3>&1 1>&2 2>&3)
@@ -1214,9 +1214,9 @@ do_set_hostapd_others() {
       whiptail --msgbox "This parameter cannot be empty. Please try again." 20 60
     fi
   done
-  set_config_var HOSTAPD_CC $CC $CONFIG
-  set_config_var HOSTAPD_MODE $MODE $CONFIG
-  set_config_var HOSTAPD_CH $CH $CONFIG
+  set_config_var HOSTAPD_CC "$CC" "$CONFIG"
+  set_config_var HOSTAPD_MODE "$MODE" "$CONFIG"
+  set_config_var HOSTAPD_CH "$CH" "$CONFIG"
   if [ "${INTERACTIVE}" = true ]; then
     whiptail --msgbox "The parameters for hostapd are CC=$CC, MODE=$MODE and CH=$CH." 20 60 1
   fi
@@ -1267,12 +1267,12 @@ do_restart_raspberrygate () {
     exit 1
   fi
 
-  LAN_PREF4=$(get_prefix4 $LAN_ADDR4)
-  LAN_PSTR4=$(get_pstring4 $LAN_ADDR4)
-  LAN_PREF6=$(get_prefix6 $LAN_ADDR6)
-  LAN_PSTR6=$(get_pstring6 $LAN_PREF6)
+  LAN_PREF4=$(get_prefix4 "$LAN_ADDR4")
+  LAN_PSTR4=$(get_pstring4 "$LAN_ADDR4")
+  LAN_PREF6=$(get_prefix6 "$LAN_ADDR6")
+  LAN_PSTR6=$(get_pstring6 "$LAN_PREF6")
 
-  DNS_DHCP4=`echo "$LAN_ADDR4" | awk -F/ '{print $1}'`
+  DNS_DHCP4=$(echo "$LAN_ADDR4" | awk -F/ '{print $1}')
 
   if [ -z "$DNS_RDNSS_ID" ]; then
     echo "ERROR(main): DNS_RDNSS_ID is empty." 1>&2
@@ -1312,7 +1312,7 @@ do_restart_raspberrygate () {
   #reset_wan
   reset_lan
   disable_nat64
-  rm -f $CONF_DHCPD $CONF_DHCP6D $CONF_RADVD $CONF_UNBOUND
+  rm -f "$CONF_DHCPD" "$CONF_DHCP6D" "$CONF_RADVD" "$CONF_UNBOUND"
 
   # stop hostapd/dhcp/radvd/dhcpv6/unbound
   sudo systemctl stop hostapd
@@ -1320,7 +1320,7 @@ do_restart_raspberrygate () {
   sudo systemctl stop radvd
   sudo systemctl stop unbound
 
-  if [ $MODE_RG -eq 0 ]; then
+  if [ "$MODE_RG" -eq 0 ]; then
     if [ "$VERBOSE" = yes ]; then
       echo "-- use bridge mode"
     fi
@@ -1330,8 +1330,8 @@ do_restart_raspberrygate () {
         echo "-- start hostapd"
       fi
       make_hostapd_conf bridge
-      sudo cp $CONF_HOSTAPD $ETC_HOSTAPD
-      rm $CONF_HOSTAPD
+      sudo cp "$CONF_HOSTAPD" "$ETC_HOSTAPD"
+      rm "$CONF_HOSTAPD"
       sudo systemctl start hostapd
     fi
     return 0
@@ -1343,7 +1343,7 @@ do_restart_raspberrygate () {
 
   case "$MODE_IPV4" in
     0 )
-      if [ $MODE_IPV6 -eq 0 -o $MODE_IPV6 -eq 1 ]; then
+      if [ "$MODE_IPV6" -eq 0 ] || [ "$MODE_IPV6" -eq 1 ]; then
         print_usage
       fi
       enable_nat64 || print_error enable_nat64
@@ -1353,12 +1353,12 @@ do_restart_raspberrygate () {
       if [ "$WAN_ADDR4" != 'auto' ]; then
         set_wan 4 || print_error "set_lan 4"
       else
-        WAN_ADDR4=$(get_cidr4 $WAN_IF)
+        WAN_ADDR4=$(get_cidr4 "$WAN_IF")
         if [ -z "$WAN_ADDR4" ]; then
           echo "ERROR(main): WAN_ADDR4 can not be obtained." 1>&2
           exit 1
         fi
-        WAN_PREF4=$(get_prefix4 $WAN_ADDR4)
+        WAN_PREF4=$(get_prefix4 "$WAN_ADDR4")
       fi
       set_lan 4 || print_error "set_lan 4"
       enable_v4routing || print_error enable_v4routing
@@ -1429,16 +1429,16 @@ do_restart_raspberrygate () {
     * ) echo "ERROR(main): <IPv6_mode> must be between 0 and 8." 1>&2; return 1 ;;
   esac
 
-  if [ $MODE_IPV6 -ne 0 ]; then
+  if [ "$MODE_IPV6" -ne 0 ]; then
     if [ "$WAN_ADDR6" != 'auto' ]; then
       set_wan 6 || print_error "set_lan 6"
     else
-      WAN_ADDR6=$(get_cidr6 $WAN_IF)
+      WAN_ADDR6=$(get_cidr6 "$WAN_IF")
       if [ -z "$WAN_ADDR6" ]; then
         echo "ERROR(main): WAN_ADDR6 can not be obtained." 1>&2
         exit 1
       fi
-      WAN_PREF6=$(get_prefix6 $WAN_ADDR6)
+      WAN_PREF6=$(get_prefix6 "$WAN_ADDR6")
     fi
     set_lan 6 || print_error "set_lan 6"
     enable_v6routing || print_error enable_v6routing
@@ -1467,18 +1467,18 @@ do_restart_raspberrygate () {
       echo "-- start hostapd"
     fi
     make_hostapd_conf router
-    sudo cp $CONF_HOSTAPD $ETC_HOSTAPD
-    rm $CONF_HOSTAPD
+    sudo cp "$CONF_HOSTAPD" "$ETC_HOSTAPD"
+    rm "$CONF_HOSTAPD"
     sudo systemctl start hostapd
   fi
 
   # start dhcpd
-  if [ -f "$CONF_DHCPD" -o -f "$CONF_DHCP6D" ]; then
+  if [ -f "$CONF_DHCPD" ] || [ -f "$CONF_DHCP6D" ]; then
     if [ "$VERBOSE" = yes ]; then
       echo "-- start dhcpd"
     fi
     # make dhcp default file (CONF_DEFAULT_DHCPD)
-    if [ -f "$CONF_DHCPD" -a -f "$CONF_DHCP6D" ]; then
+    if [ -f "$CONF_DHCPD" ] && [ -f "$CONF_DHCP6D" ]; then
       make_def_dhcpd_conf dual
     elif [ -f "$CONF_DHCPD" ]; then
       make_def_dhcpd_conf v4only
@@ -1488,16 +1488,16 @@ do_restart_raspberrygate () {
       echo "error!"
     fi
     if [ -f "$CONF_DHCPD" ]; then
-      sudo cp $CONF_DHCPD $ETC_DHCPD
-      rm $CONF_DHCPD
+      sudo cp "$CONF_DHCPD" "$ETC_DHCPD"
+      rm "$CONF_DHCPD"
     fi
     if [ -f "$CONF_DHCP6D" ]; then
-      sudo cp $CONF_DHCP6D $ETC_DHCP6D
-      rm $CONF_DHCP6D
+      sudo cp "$CONF_DHCP6D" "$ETC_DHCP6D"
+      rm "$CONF_DHCP6D"
     fi
 
-    sudo cp $CONF_DEFAULT_DHCPD $ETC_DEFAULT_DHCPD
-    rm $CONF_DEFAULT_DHCPD
+    sudo cp "$CONF_DEFAULT_DHCPD" "$ETC_DEFAULT_DHCPD"
+    rm "$CONF_DEFAULT_DHCPD"
     sudo systemctl start isc-dhcp-server
   fi
 
@@ -1506,8 +1506,8 @@ do_restart_raspberrygate () {
     if [ "$VERBOSE" = yes ]; then
       echo "-- start radvd"
     fi
-    sudo cp $CONF_RADVD $ETC_RADVD
-    rm $CONF_RADVD
+    sudo cp "$CONF_RADVD" "$ETC_RADVD"
+    rm "$CONF_RADVD"
     sudo systemctl start radvd
   fi
 
@@ -1516,8 +1516,8 @@ do_restart_raspberrygate () {
     if [ "$VERBOSE" = yes ]; then
       echo "-- start unbound"
     fi
-    sudo cp $CONF_UNBOUND $ETC_UNBOUND
-    rm $CONF_UNBOUND
+    sudo cp "$CONF_UNBOUND" "$ETC_UNBOUND"
+    rm "$CONF_UNBOUND"
 sleep 5
     sudo systemctl start unbound
   fi

@@ -35,7 +35,7 @@ echo "-- done."
 
 # reboot system now
 echo -n "Would you like to reboot now? [Y/n]: "
-read ANS
+read -r ANS
 
 case $ANS in
   "" | [Yy]* )
