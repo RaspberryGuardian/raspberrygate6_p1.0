@@ -237,7 +237,7 @@ make_unbound_conf () {
 forward-zone:${LF}\
     name: \".\"${LF}\
     forward-addr: 8.8.8.8@g"						\
-        "$TEMPL_UNBOUND > $CONF_UNBOUND"
+        "$TEMPL_UNBOUND" > "$CONF_UNBOUND"
   ;;
   * ) echo "ERROR(make_unbound_conf): <type> must be 'v4only', 'dual'"	\
            "or 'dns64'." 1>&2; return 1 ;;
@@ -566,7 +566,7 @@ disable_nat64 () {
   fi
   sudo ip6tables -t mangle -F
   sudo iptables -t mangle -F
-#  sudo $CMD_JOOL instance remove "nat64"
+  sudo $CMD_JOOL instance remove "nat64"
   sudo modprobe -r jool
   return $?
 }
