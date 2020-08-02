@@ -566,8 +566,11 @@ disable_nat64 () {
   fi
   sudo ip6tables -t mangle -F
   sudo iptables -t mangle -F
-  sudo $CMD_JOOL instance remove "nat64"
-  sudo modprobe -r jool
+  sudo $CMD_JOOL instance remove "nat64" 2>/dev/null
+  if lsmod | grep jool > /dev/null; then
+    echo " sido modprobe -r jool"
+    sudo modprobe -r jool
+  fi
   return $?
 }
 
