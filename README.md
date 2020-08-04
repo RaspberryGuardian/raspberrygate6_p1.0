@@ -6,7 +6,7 @@ Raspberry Gate with IPv6 for Raspberry Guardian. Prototype Version 1.0
 ```
 sh ./install-raspg.sh
 ```
-Finaly, you have to reboot your system.
+Finally, you have to reboot your system.
 ```
 ..........
 -- done.
@@ -65,7 +65,7 @@ Parameters (LAN section):
  - `LAN_IF`=\<device name\> **(L1)** - Specifies the device name for LAN interface (e.g. eth0/eth1/wlan0/ra0). (default: wlan0)
  - `LAST_LANIF`=\<device name\> - This parameter is for script state management. Do not change manually.
  - `LAN_ADDR4`=\<IPv4 address\> **(L3)** - Specifies the IPv4 address on LAN interface (CIDR format). (default: 192.168.222.1/24)
- - `LAN_ADDR6`=\<IPv6 address\> **(L4)** - Specifies the IPv6 address on LAN interface (CIDR format). (default: 2001:2:222::/64(Benchmarking address))
+ - `LAN_ADDR6`=\<IPv6 address\> **(L4)** - Specifies the IPv6 address on LAN interface (CIDR format). (default: 2001:2:0:222::1/64(Benchmarking address))
  - `USE_HOSTAPD`=\<yes or no\> **(L2)** - Switch using hostapd at LAN interface. (default: yes)
 
 Parameters (Service section):
